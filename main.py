@@ -1,51 +1,45 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Dec  4 15:51:29 2019
+############################
+# Created on Wed Dec  4 15:51:29 2019
+# author: Gordon Cheung Yat Hei
+# CID: 01083012
+# Project: Optimisation
+############################
 
-@author: Gordon Cheung
-"""
 import numpy as np
 import sympy as sym
 import matplotlib.pyplot as plt
 from solar_irradiation import Solar_irradiation
 from utils import *
+import pandas as pd
+
+## Data parameters
+data_path = "Data\\" # path of the data folder
 
 ######## Part 1. Formulation of the problem ########
 
-### Parameters
+### Model Parameters
 resolution = 0.1
-days = 365 # number of days taken account of in this calculation
+num_days = 365*2 # number of days taken account of in this calculation
 latitude = np.deg2rad(50.41)
 t = sym.Symbol('t') # time parameter for the optimisation problem
 
 ### Part 1.1 Setting up the solar irradiance data
-solar = Solar_irradiation(latitude, np.arange(1,days*24, resolution), resolution)
+solar = Solar_irradiation(latitude, np.arange(1,num_days*24, resolution), resolution)
 
 ## get the daily averages of solar irradiation
-yavg = solar.get_daily_average()
+yavg = solar.get_daily_average()/1000 #convertig from Wm^-2 to kWm^-2
 
-# fit a surrogate model onto the daily average to simplify the algorithm
-tt = np.arange(days)
-solar_daily = fit_sin(tt, yavg)
-#print( "Amplitude=%(amp)s \n Angular freq.=%(omega)s \n phase=%(phase)s, \
-#      \n offset=%(offset)s \n Max. Cov.=%(maxcov)s" % solar_daily )
-solar_daily_fit = solar_daily["A"]*sym.sin(solar_daily["w"]*t+solar_daily["b"])+solar_daily["c"]
-print(sym.diff(solar_daily_fit,t))
-plt.figure()
-plt.title("Sinusodal curve fitting of the daily solar irradiance")
-plt.plot(tt, yavg, "ob", label="daily averages", linewidth=2)
-plt.plot(tt, solar_daily["fitfunc"](tt), "y-", label="fit curve", linewidth=2)
-plt.legend(loc="best")
-plt.show()
+## fit a surrogate model onto the daily average to simplify the algorithm
+day = np.arange(num_days)
+solar_daily = fit_sin(day, yavg) #fitting based in days
+# symbolic function of the fit
+solar_daily_fit = solar_daily["A"]*sym.sin(solar_daily["w"]*(t)+solar_daily["b"])+solar_daily["c"]
+# unit:  time = day; irradiance = kWm^-2
 
 ## compute the maximum and minimum days for later optimisation
 max_day = np.argmax(yavg)
 min_day = np.argmin(yavg)
-#print(" max day: ", max_day, ", value: ", yavg[max_day])
-#print(" min day: ", min_day, ", value: ", yavg[min_day])
 yId = solar.get_data()
-#plt.figure()
-#plt.plot(yId)
 
 # Using the maximum and minimum to slice the days out for later optimisation
 max_data = yId[int(max_day*24/resolution):int((max_day*24+23)/resolution)]
@@ -57,14 +51,6 @@ min_data = yId[int(min_day*24/resolution):int((min_day*24+23)/resolution)]
 tt = np.arange(0, 23,resolution)
 solar_max = fit_sin(tt, max_data)
 solar_min = fit_sin(tt, min_data)
-#plt.figure()
-#plt.title("Sinusodal curve fitting of the day with max and min solar irradiance")
-#plt.plot(tt, max_data, "bo", label="max data", linewidth=1)
-#plt.plot(tt, solar_max["fitfunc"](tt), "b-", label="max fit", linewidth=2)
-#plt.plot(tt, min_data, "ro", label="min data", linewidth=2)
-#plt.plot(tt, solar_min["fitfunc"](tt), "r-", label="min fit", linewidth=1)
-#plt.legend(loc="best")
-#plt.show()
 
 
 ### Part 1.2 Setting up the consumption data 
@@ -72,21 +58,47 @@ solar_min = fit_sin(tt, min_data)
 # Using dataset taken online, with the power consumption adjusted assuming 
 # the household in study is average and varies with the national average
 # Further adjusted by the region defined using the 2017 consumption data
-df = pd.read_csv("C:\\Users\\Gordon Cheung\\OneDrive - Imperial College London\\1.Imperial\\\
-                 Year_4\\Optimisation\\Coursework\\Code\\Data\\energy_consumption.csv")
+consmption_df = pd.read_csv(data_path+"energy_consumption.csv")
 # converting the time scale from days to hours (to be consistent from above)
-df['hour']=df['Day']*24
-plt.plot(df['hour'],df['Power (adjusted)']) # visualising 
+consmption_df['hour']=consmption_df['Day']*24
 
-# fit a surrogate model onto the daily average to simplify the algorithm
-tt = df['hour']
-consumption = fit_sin(df['hour'], df['Power (adjusted)'])
+## fit a surrogate model onto the daily average to simplify the algorithm
+tt = np.arange(0, num_days, 0.1)
+consumption = fit_sin(consmption_df['Day'], consmption_df['Power (adjusted)']/(30)) # scaled to daily average instead of monthly total
+# symbolic function of the fit
 consumption_fit = consumption["A"]*sym.sin(consumption["w"]*t+consumption["b"])+consumption["c"]
+# units:  time = day; power = kWh
 
-# print(sym.diff(solar_daily["fitfunc"],t))
+## Plotting the curve of daily average solar irradiation with daily average consumption
 plt.figure()
 plt.title("Sinusodal curve fitting of the electricity consumption")
-plt.plot(df['hour'], df['Power (adjusted)'], "ob", label="consumption", linewidth=2)
-plt.plot(df['hour'], solar_daily["fitfunc"](tt), "y-", label="fit curve", linewidth=2)
+plt.plot(tt, solar_daily["fitfunc"](tt), "b-", label="solar irradiation fit curve", linewidth=2) # based in hours
+plt.plot(tt, consumption["fitfunc"](tt), "y-", label="consumption fit curve", linewidth=2)
 plt.legend(loc="best")
 plt.show()
+#
+
+## verifying the converted function matches the data
+year = (365)
+total = sym.integrate(consumption_fit, (t, 0, year))
+print (total)
+
+### Part 1.3 Importing formulating the solar panel problem
+
+## Roof parameters
+min_ang = 20
+max_ang = 70
+roof_angle = np.deg2rad(np.arange(min_ang, max_ang))
+
+## Reading of the data
+solar_panel_df = pd.read_csv(data_path+"solar_panels.csv")
+# Unit conversion to make it consistent to the rest of the formulation
+solar_panel_df["Power rating (kW)"] = solar_panel_df["Power rating (W)"]/1000
+solar_panel_df["Area (m^2)"] = solar_panel_df["Length (m)"]*solar_panel_df["Width (m)"]
+# Cleaning up of the dataframe
+del solar_panel_df["Power rating (W)"]
+del solar_panel_df["OCV (V)"]
+del solar_panel_df["SCC (A)"]
+del solar_panel_df["Cells"]
+del solar_panel_df["Thickness (m)"]
+

@@ -1,16 +1,16 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Dec  4 15:51:06 2019
+############################
+# Created on Wed Dec  4 15:51:06 2019
+# author: Gordon Cheung Yat Hei
+# CID: 01083012
+# Project: Optimisation
+############################
 
-@author: Gordon Cheung
-"""
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as optimize
 import sympy as sym
 
 def fit_sin(tt, yy):
-    t = sym.Symbol('t')
     # algorithm taken from:
     # https://stackoverflow.com/questions/16716302/how-do-i-fit-a-sine-curve-to-my-data-with-pylab-and-numpy#16716964
     ## Fit sin to the input time sequence, and return fitting parameters "A", "omega", "b", "c" and fitfunc"
@@ -31,3 +31,28 @@ def fit_sin(tt, yy):
     fitfunc = lambda t: A * np.sin(w*t + b) + c
     return {"A": A, "w": w, "b": b, "c": c,
             "fitfunc": fitfunc, "maxcov": np.max(pcov), "rawres": (guess,popt,pcov)}
+
+def roof_width(beta):
+    return (width*np.sin(beta))/np.sin(np.pi-2*beta)
+
+def max_tiling(p_length, p_width, r_length, r_width):
+    if r_width >= p_length:
+        # if the panels can be fitted perpendicularly
+        number = np.floor(r_width/p_length)*np.floor(r_length/p_width)
+        if r_width-p_length >= p_width:
+            # if more panels can be fitted parallely
+            number = number + np.floor(r_width-p_length/p_width)*np.floor(r_length/p_length)
+    elif r_width >= p_width:
+        # otherwise if we can fit the panels parallely
+        number = np.floor(r_width/p_width)*np.floor(r_length/p_length)
+    else: number = 0
+    return number
+
+def bills(energy, consumption, domain):
+    t = sym.Symbol('t')
+    sol = sym.solveset(energy, consumption)
+    sol.insert(0,domain[0])
+    sol.append(domain[1])
+    for i in len(sol):
+        
+    

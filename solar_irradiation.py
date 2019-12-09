@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Dec  4 15:50:24 2019
-
-@author: Gordon Cheung
-"""
+############################
+# Created on Wed Dec  4 15:50:24 2019
+# author: Gordon Cheung Yat Hei
+# CID: 01083012
+# Project: Optimisation
+############################
 
 import numpy as np
 import matplotlib.pyplot as plt
