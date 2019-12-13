@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import scipy.optimize as optimize
 import sympy as sym
 
+
+## All the fitting functions defined to make easy usage
+
 def fit_sin(tt, yy):
     # algorithm taken from:
     # https://stackoverflow.com/questions/16716302/how-do-i-fit-a-sine-curve-to-my-data-with-pylab-and-numpy#16716964
@@ -32,6 +35,34 @@ def fit_sin(tt, yy):
     return {"A": A, "w": w, "b": b, "c": c,
             "fitfunc": fitfunc, "maxcov": np.max(pcov), "rawres": (guess,popt,pcov)}
 
+def fit_log(tt, yy):
+    tt = np.array(tt)
+    yy = np.array(yy)
+    def log_func(x, a, b, c):
+        return a * np.log(b * x) + c
+
+    popt, pcov = optimize.curve_fit(log_func, tt, yy)
+    a, b, c = popt
+    fitfunc = lambda x: a * np.log(b * x) + c
+    return {"a": a, "b": b, "c": c,
+            "fitfunc": fitfunc, "maxcov": np.max(pcov), "rawres": (popt,pcov)}
+
+def fit_exp(tt, yy):
+    tt = np.array(tt)
+    yy = np.array(yy)
+    def exp_func(x, a, b, c):
+        return a * np.exp(b * x) + c
+    popt, pcov = optimize.curve_fit(exp_func, tt, yy)
+    a, b, c = popt
+    fitfunc = lambda x: a * np.exp(b * x) + c
+    return {"a": a, "b": b, "c": c,
+            "fitfunc": fitfunc, "maxcov": np.max(pcov), "rawres": (popt,pcov)}
+
+
+
+
+
+
 def roof_width(beta):
     return (width*np.sin(beta))/np.sin(np.pi-2*beta)
 
@@ -47,12 +78,12 @@ def max_tiling(p_length, p_width, r_length, r_width):
         number = np.floor(r_width/p_width)*np.floor(r_length/p_length)
     else: number = 0
     return number
-
-def bills(energy, consumption, domain):
-    t = sym.Symbol('t')
-    sol = sym.solveset(energy, consumption)
-    sol.insert(0,domain[0])
-    sol.append(domain[1])
-    for i in len(sol):
-        
-    
+#
+#def bills(energy, consumption, domain):
+#    t = sym.Symbol('t')
+#    sol = sym.solveset(energy, consumption)
+#    sol.insert(0,domain[0])
+#    sol.append(domain[1])
+#    for i in len(sol):
+#        
+#    

@@ -1,0 +1,5 @@
+Material	k	cost per kg	density
+phenolicfoam	0.019	5.02	32
+polyurethanefoam	0.025	4.9	30
+PVCcrosslinkedfoam	0.028	11.6	97
+PPfoamclosedcell	0.041	1.38	38
