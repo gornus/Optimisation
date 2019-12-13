@@ -291,7 +291,7 @@ for i in range(len(beta)):
 #
 #	
 ## Find index of minimum value from 2D numpy array
-#result = np.where(total_costs == np.amin(total_costs))
+result = np.where(total_costs == np.amin(total_costs))
 #plt.plot(gen_rates[result[0]], roof_angs[result[1]], np.amin(total_costs), 'bo')
 #
 #plt.xlabel('Generation Rates ($kWm^-2$)')
