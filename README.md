@@ -1,7 +1,7 @@
 # Optimisation
-
+Project for the Optimisation module in Design Engineering.
 ## Background
-Design Engineering Optimisation Group project in optimising a system with 4 subsystems. The system we chosen is a small house, with the objective of optimising the energy use. The four subsystems chosen and their respective author are:
+The project involved us optimising a system with 4 subsystems. The system we chosen is a small house, with the objective of optimising the energy use. The four subsystems chosen and their respective author are:
 1. Walls -- Minal Choudhary
 2. Boiler -- Rob Hyde
 3. Windows -- Michael Hofmann 
