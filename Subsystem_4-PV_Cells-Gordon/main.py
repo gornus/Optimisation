@@ -276,7 +276,7 @@ for i in range(len(beta)):
     for j in range(len(gen_rate)):
         generation = lambda t: gen_rate[j]*np.sin(np.pi/2-np.deg2rad(latitude)+solar.delta(t)+beta[i])*solar_fit(t)
         energy_cost = bills(generation,consumption_fit,[0, 365])
-        panel_cost = pareto_fit(gen_rate[j])+roof_width(width, beta[i])*length*roof_unit_costs/roof_life
+        panel_cost = pareto_fit(gen_rate[j])#+roof_width(width, beta[i])*length*roof_unit_costs/roof_life
         gen_rates = np.append(gen_rates,gen_rate[j])
         roof_angs = np.append(roof_angs,beta[i])
         total_costs[i,j]=energy_cost+panel_cost
@@ -313,6 +313,8 @@ print("\n\n")
 #### Part 3.2 Direct Search ####
 overall_start=time.time()
 beta = np.arange(np.deg2rad(20), np.deg2rad(25), np.deg2rad(0.1))
+
+print("Starting Direct Search")
 
 for i in range(pareto_df.shape[0]):
     no_panels = np.array([])
